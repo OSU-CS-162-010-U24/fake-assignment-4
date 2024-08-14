@@ -339,25 +339,25 @@ int game::choose_random_direction(int row, int column) const {
 	do {
 		direction = rand() % 4 + 1;
 		if (direction == 1) {
-			if (this->maze.at(row - 1).at(column).is_passable()) {
+			if (tile_passable(row - 1, column)) {
 				invalid_direction = false;
 			} else {
 				invalid_direction = true;
 			}
 		} else if (direction == 2) {
-			if (this->maze.at(row + 1).at(column).is_passable()) {
+			if (tile_passable(row + 1, column)) {
 				invalid_direction = false;
 			} else {
 				invalid_direction = true;
 			}
 		} else if (direction == 3) {
-			if (this->maze.at(row).at(column - 1).is_passable()) {
+			if (tile_passable(row, column - 1)) {
 				invalid_direction = false;
 			} else {
 				invalid_direction = true;
 			}
 		}  else if (direction == 4) {
-			if (this->maze.at(row).at(column + 1).is_passable()) {
+			if (tile_passable(row, column + 1)) {
 				invalid_direction = false;
 			} else {
 				invalid_direction = true;
@@ -381,8 +381,14 @@ void game::ghost_actions() {
 		this->inky.move_down();
 	} else if (direction == 3) {
 		this->inky.move_left();
+		if (this->inky.get_column() < 0) {
+			this->inky.set_column(24);
+		}
 	} else {
 		this->inky.move_right();
+		if (this->inky.get_column() > 24) {
+			this->inky.set_column(0);
+		}
 	}
 
 	direction = this->choose_random_direction(
@@ -395,8 +401,14 @@ void game::ghost_actions() {
 		this->blinky.move_down();
 	} else if (direction == 3) {
 		this->blinky.move_left();
+		if (this->blinky.get_column() < 0) {
+			this->blinky.set_column(24);
+		}
 	} else {
 		this->blinky.move_right();
+		if (this->blinky.get_column() > 24) {
+			this->blinky.set_column(0);
+		}
 	}
 
 	direction = this->choose_random_direction(
@@ -409,8 +421,14 @@ void game::ghost_actions() {
 		this->pinky.move_down();
 	} else if (direction == 3) {
 		this->pinky.move_left();
+		if (this->pinky.get_column() < 0) {
+			this->pinky.set_column(24);
+		}
 	} else {
 		this->pinky.move_right();
+		if (this->pinky.get_column() > 24) {
+			this->pinky.set_column(0);
+		}
 	}
 
 	direction = this->choose_random_direction(
@@ -423,8 +441,14 @@ void game::ghost_actions() {
 		this->clyde.move_down();
 	} else if (direction == 3) {
 		this->clyde.move_left();
+		if (this->clyde.get_column() < 0) {
+			this->clyde.set_column(24);
+		}
 	} else {
 		this->clyde.move_right();
+		if (this->clyde.get_column() > 24) {
+			this->clyde.set_column(0);
+		}
 	}
 
 	this->trigger_ghost_encounter();
