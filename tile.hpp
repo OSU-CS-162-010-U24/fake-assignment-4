@@ -11,6 +11,14 @@ public:
 	tile() = default;
 	tile(bool passable);
 	tile(event* e);
+
+	~tile();
+	tile(const tile& other);
+	tile& operator=(const tile& other);
+
+	event* get_event() const;
+	void set_event(event* e);
+
 	void clear_event();
 
 	// Getter for passable

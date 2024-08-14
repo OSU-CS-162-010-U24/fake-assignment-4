@@ -3,12 +3,12 @@
 
 #include "event.hpp"
 
-// TODO Complete this class
 class power_pellet : public event {
-private:
-
 public:
+	void encounter(pacman& p) override;
+	void print() override;
 
+	event* clone();
 };
 
 #endif

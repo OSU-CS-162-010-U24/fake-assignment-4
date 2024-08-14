@@ -1,6 +1,8 @@
 #ifndef PRINT_UTIL_HPP
 #define PRINT_UTIL_HPP
 
+#include <string>
+
 void print_ghost(std::string color);
 
 void print_wall();

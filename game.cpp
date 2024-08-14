@@ -3,17 +3,32 @@
 
 #include "game.hpp"
 #include "maze_util.hpp"
+#include "print_util.hpp"
+#include "fruit.hpp"
 
-game::game() {
+game::game() : inky("blue"), pinky("pink"), blinky("red"), clyde("orange") {
 	this->reset();
 }
 
 void game::reset_pacman() {
-	// TODO Set Pac-Man's position to row index 23, column index 12
+	// Set Pac-Man's position to row index 23, column index 12
+	this->p.set_row(23);
+	this->p.set_column(12);
 }
 
 void game::reset_ghosts() {
-	// TODO For each ghost, reset ghost's position
+	// For each ghost, reset ghost's position.
+	this->blinky.set_row(13);
+	this->blinky.set_column(12);
+
+	this->inky.set_row(14);
+	this->inky.set_column(11);
+
+	this->pinky.set_row(14);
+	this->pinky.set_column(12);
+
+	this->clyde.set_row(14);
+	this->clyde.set_column(13);
 }
 
 void game::reset() {
@@ -52,29 +67,91 @@ void game::reset() {
 		{'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'}  // row 30
 	};
 
-	// TODO Create maze. Hint: Use a nested for loop and tile_from_char()
+	// Create maze. Hint: Use a nested for loop and tile_from_char()
 	// as provided by maze_util.hpp to convert the characters in the above
 	// array to tiles to store in the 2D vector
+	std::vector<std::vector<tile>> maze(31, std::vector<tile>(25));
+	
+	for (int i = 0; i < 31; i++) {
+		for (int j = 0; j < 25; j++) {
+			maze.at(i).at(j) = tile_from_char(game_grid[i][j]);
+		}
+	}
+
+	this->maze = maze;
 
 	this->reset_pacman();
 	this->reset_ghosts();
+}
+
+bool game::contains_ghost(int row, int column) const {
+	if (this->inky.get_row() == row &&
+			this->inky.get_column() == column) {
+		return true;
+	}
+
+	if (this->blinky.get_row() == row &&
+			this->blinky.get_column() == column) {
+		return true;
+	}
+	
+	if (this->pinky.get_row() == row &&
+			this->pinky.get_column() == column) {
+		return true;
+	}
+
+	if (this->clyde.get_row() == row &&
+			this->clyde.get_column() == column) {
+		return true;
+	}
+
+	return false;
+}
+
+void game::print_ghost(int row, int column) const {
+	if (this->inky.get_row() == row &&
+			this->inky.get_column() == column &&
+			this->inky.get_alive()) {
+		this->inky.print();
+	} else if (this->blinky.get_row() == row &&
+			this->blinky.get_column() == column &&
+			this->blinky.get_alive()) {
+		this->blinky.print();
+	} else if (this->pinky.get_row() == row &&
+			this->pinky.get_column() == column &&
+			this->pinky.get_alive()) {
+		this->pinky.print();
+	} else if (this->clyde.get_row() == row &&
+			this->clyde.get_column() == column &&
+			this->clyde.get_alive()) {
+		this->clyde.print();
+	}
 }
 	
 void game::print_maze() const {
 	for (int i = 0; i < 31; i++) {
 		// Print row
 		for (int j = 0; j < 25; j++) {
-				// TODO If Pac-Man at row i, column j, display
+			if (this->p.get_row() == i && this->p.get_column() == j) {
+				// If Pac-Man at row i, column j, display
 				// Pac-Man
-
-				// TODO Else if ghost is at row i, column j, display
+				print_pacman();
+			} else if (this->contains_ghost(i, j)) {
+				// Else if ghost is at row i, column j, display
 				// ghost
-
-				// TODO Else if tile at row i, column j is not
+				this->print_ghost(i, j);
+			} else if (!this->maze.at(i).at(j).is_passable()) {
+				// Else if tile at row i, column j is not
 				// passable, print wall character
-
-				// TODO Else, print character of event in tile at
-				// row i, column j
+				print_wall();
+			} else if (this->maze.at(i).at(j).get_event() != nullptr) {
+				// Else if the tile at row i, column j
+				// contains an event, print character of event
+				// in tile
+				this->maze.at(i).at(j).get_event()->print();
+			} else {
+				std::cout << " ";
+			}
 		}
 
 		// Print endline
@@ -84,22 +161,25 @@ void game::print_maze() const {
 
 void game::print_top_hud() const {
 	std::cout << "  Score: ";
-	// TODO Print player's score
+	// Print player's score
+	std::cout << this->p.get_score();
 	std::cout << std::endl;
 }
 
 void game::print_bottom_hud() const {
 	std::cout << "  ";
-		// TODO For each remaining life player has, minus 1:
-			// TODO Print a Pac-Man icon
+	for (int i = 0; i < this->p.get_lives() - 1; i++) {
+		// For each remaining life player has, minus 1:
+		// Print a Pac-Man icon
+		print_pacman();
+	}
+	
 	std::cout << std::endl;
 }
 
 bool game::game_over() const {
-	// TODO Return true if the game is over, false otherwise.
-	
-	// TODO Remove this line of code
-	return false;
+	// Return true if the game is over, false otherwise.
+	return this->p.get_lives() == 0;
 }
 
 bool game::is_valid_direction(char direction) const {
@@ -107,17 +187,18 @@ bool game::is_valid_direction(char direction) const {
 }
 
 bool game::tile_passable(int row, int column) const {
-	// TODO Return true if the tile at the given row and column is passable,
+	// Return true if the tile at the given row and column is passable,
 	// false otherwise.
-	
-	// TODO Remove this line of code
-	return true;
+	if (column < 0 || column > 24) {
+		return true;
+	}
+	return this->maze.at(row).at(column).is_passable();
 }
 
 char game::prompt_player_direction() const {
 	char direction;
-	int player_row = 0; // TODO Change this to PacMan's current row idx
-	int player_column = 0; // TODO Change this to PacMan's current col idx
+	int player_row = this->p.get_row();
+	int player_column = this->p.get_column();
 	int new_row;
 	int new_column;
 	bool valid_move = false;
@@ -158,23 +239,91 @@ char game::prompt_player_direction() const {
 
 void game::move_pacman(char direction) {
 	if (direction == 'W') {
-		// TODO Move Pac-Man up
+		// Move Pac-Man up
+		this->p.move_up();
 	} else if (direction == 'A') {
-		// TODO Move Pac-Man left
+		// Move Pac-Man left
+		this->p.move_left();
+		if (this->p.get_column() < 0) {
+			this->p.set_column(24);
+		}
 	} else if (direction == 'S') {
-		// TODO Move Pac-Man down
+		// Move Pac-Man down
+		this->p.move_down();
 	} else {
-		// TODO Move Pac-Man right
+		// Move Pac-Man right
+		this->p.move_right();
+		if (this->p.get_column() > 24) {
+			this->p.set_column(0);
+		}
 	}
 }
 
 void game::trigger_event_encounter() {
-		// TODO If Pac-Man is on tile with event, trigger the event's
+	if (this->maze.at(this->p.get_row()).at(this->p.get_column()).get_event() != nullptr) {
+		// If Pac-Man is on tile with event, trigger the event's
 		// encounter
+		this->maze
+			.at(this->p.get_row())
+			.at(this->p.get_column())
+			.get_event()
+				->encounter(this->p);
+		
+		// Remove the event from the maze
+		this->maze
+			.at(this->p.get_row())
+			.at(this->p.get_column())
+			.clear_event();
+	}
 }
 
 void game::trigger_ghost_encounter() {
-		// TODO If Pac-Man is on tile with ghost, trigger ghost encounter
+	if (this->p.get_row() == this->inky.get_row() &&
+			this->p.get_column() == this->inky.get_column() &&
+			this->inky.get_alive()) {
+		if (this->p.is_empowered()) {
+			this->inky.death();
+		} else {
+			this->p.death();
+			this->reset_pacman();
+			this->reset_ghosts();
+		}
+	}
+
+	if (this->p.get_row() == this->blinky.get_row() &&
+			this->p.get_column() == this->blinky.get_column() &&
+			this->blinky.get_alive()) {
+		if (this->p.is_empowered()) {
+			this->blinky.death();
+		} else {
+			this->p.death();
+			this->reset_pacman();
+			this->reset_ghosts();
+		}
+	}
+
+	if (this->p.get_row() == this->pinky.get_row() &&
+			this->p.get_column() == this->pinky.get_column() &&
+			this->pinky.get_alive()) {
+		if (this->p.is_empowered()) {
+			this->pinky.death();
+		} else {
+			this->p.death();
+			this->reset_pacman();
+			this->reset_ghosts();
+		}
+	}
+
+	if (this->p.get_row() == this->clyde.get_row() &&
+			this->p.get_column() == this->clyde.get_column()) {
+		if (this->p.is_empowered()) {
+			this->clyde.death();
+		} else {
+			this->p.death();
+			this->reset_pacman();
+			this->reset_ghosts();
+		}
+	}
 }
 
 void game::player_action() {
@@ -184,9 +333,99 @@ void game::player_action() {
 	this->trigger_ghost_encounter();
 }
 
+int game::choose_random_direction(int row, int column) const {
+	int direction; // 1 means up, 2 down, 3 left, 4 right
+	bool invalid_direction;
+	do {
+		direction = rand() % 4 + 1;
+		if (direction == 1) {
+			if (this->maze.at(row - 1).at(column).is_passable()) {
+				invalid_direction = false;
+			} else {
+				invalid_direction = true;
+			}
+		} else if (direction == 2) {
+			if (this->maze.at(row + 1).at(column).is_passable()) {
+				invalid_direction = false;
+			} else {
+				invalid_direction = true;
+			}
+		} else if (direction == 3) {
+			if (this->maze.at(row).at(column - 1).is_passable()) {
+				invalid_direction = false;
+			} else {
+				invalid_direction = true;
+			}
+		}  else if (direction == 4) {
+			if (this->maze.at(row).at(column + 1).is_passable()) {
+				invalid_direction = false;
+			} else {
+				invalid_direction = true;
+			}
+		}
+	} while (invalid_direction);
+
+	return direction;
+}
+
 void game::ghost_actions() {
-	// TODO For each ghost, choose a random empty adjacent space to move to
+	// For each ghost, choose a random empty adjacent space to move to
 	// if one exists.
+	int direction = this->choose_random_direction(
+		this->inky.get_row(),
+		this->inky.get_column()
+	);
+	if (direction == 1) {
+		this->inky.move_up();
+	} else if (direction == 2) {
+		this->inky.move_down();
+	} else if (direction == 3) {
+		this->inky.move_left();
+	} else {
+		this->inky.move_right();
+	}
+
+	direction = this->choose_random_direction(
+		this->blinky.get_row(),
+		this->blinky.get_column()
+	);
+	if (direction == 1) {
+		this->blinky.move_up();
+	} else if (direction == 2) {
+		this->blinky.move_down();
+	} else if (direction == 3) {
+		this->blinky.move_left();
+	} else {
+		this->blinky.move_right();
+	}
+
+	direction = this->choose_random_direction(
+		this->pinky.get_row(),
+		this->pinky.get_column()
+	);
+	if (direction == 1) {
+		this->pinky.move_up();
+	} else if (direction == 2) {
+		this->pinky.move_down();
+	} else if (direction == 3) {
+		this->pinky.move_left();
+	} else {
+		this->pinky.move_right();
+	}
+
+	direction = this->choose_random_direction(
+		this->clyde.get_row(),
+		this->clyde.get_column()
+	);
+	if (direction == 1) {
+		this->clyde.move_up();
+	} else if (direction == 2) {
+		this->clyde.move_down();
+	} else if (direction == 3) {
+		this->clyde.move_left();
+	} else {
+		this->clyde.move_right();
+	}
 
 	this->trigger_ghost_encounter();
 	// Trigger ghost encounter if ghost is in same location as Pac-Man
@@ -194,7 +433,8 @@ void game::ghost_actions() {
 
 void game::print_final_score() const {
 	std::cout << "Your final score: ";
-	// TODO Print player's final score
+	// Print player's final score
+	std::cout << this->p.get_score();
 }
 
 void game::play() {
@@ -209,6 +449,31 @@ void game::play() {
 
 		// Process ghosts' turns
 		this->ghost_actions();
+
+		this->p.tick();
+
+		if (!this->p.is_empowered()) {
+			if (!this->inky.get_alive()) {
+				this->inky.respawn(14, 11);
+			}
+			if (!this->blinky.get_alive()) {
+				this->blinky.respawn(13, 12);
+			}
+			if (!this->pinky.get_alive()) {
+				this->pinky.respawn(14, 12);
+			}
+			if (!this->clyde.get_alive()) {
+				this->clyde.respawn(14, 13);
+			}
+		}
+
+		if (this->p.get_dots_eaten() == 30) {
+			this->maze.at(17).at(12).set_event(new fruit);
+		}
+
+		if (this->p.get_dots_eaten() == 224) {
+			this->reset();
+		}
 	}
 
 	this->print_final_score();

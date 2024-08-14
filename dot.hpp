@@ -5,10 +5,11 @@
 
 // TODO Complete this class
 class dot : public event {
-private:
-
 public:
+	void encounter(pacman& p) override;
+	void print() override;
 
+	event* clone();
 };
 
 #endif
